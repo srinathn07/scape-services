@@ -175,7 +175,7 @@ function App() {
           </nav>
           <a href="#home">
             <img
-              src="/scape-logo.png"
+              src="public/scape-logo.png"
               alt="Scape Logo"
               className="toolbar-logo"
             />
