@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import "./App.css";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, push } from "firebase/database";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
-// Firebase configuration (Replace with your actual credentials)
 const firebaseConfig = {
   apiKey: "AIzaSyApn7Zr7Dyt44cPozPBjG5YjNo_OBq5qfw",
   authDomain: "scape-edcd1.firebaseapp.com",
@@ -14,11 +16,25 @@ const firebaseConfig = {
   measurementId: "G-9DKLNEZH40",
 };
 
+const images = ["src/1.png", "src/2.png"];
+
 // Initialize Firebase app
 const firebaseApp = initializeApp(firebaseConfig);
 
 function App() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    serviceType: string;
+    preferredDate: string;
+    preferredTime: string;
+    notes: string;
+  }>({
     firstName: "",
     lastName: "",
     email: "",
@@ -32,23 +48,37 @@ function App() {
     notes: "",
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
   const [showModal, setShowModal] = useState(false);
-  const [submittedData, setSubmittedData] = useState(null);
+  const [submittedData, setSubmittedData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    serviceType: string;
+    preferredDate: string;
+    preferredTime: string;
+    notes: string;
+  } | null>(null);
 
-  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+  const capitalize = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
 
-  const formatLabel = (field) =>
+  const formatLabel = (field: string) =>
     capitalize(field.replace(/([A-Z])/g, " $1").toLowerCase());
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: { [key: string]: boolean } = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\d{10}$/;
 
     Object.keys(formData).forEach((key) => {
-      if (!formData[key]?.trim() && key !== "notes") {
-        newErrors[key] = true;
+      const typedKey = key as keyof typeof formData;
+      if (!formData[typedKey]?.trim() && typedKey !== "notes") {
+        newErrors[typedKey] = true;
       }
     });
 
@@ -83,7 +113,7 @@ function App() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
       const formattedPhone = formData.phone.replace(/\D/g, "");
@@ -113,7 +143,7 @@ function App() {
         });
         setErrors({});
       } catch (error) {
-        console.error("Firebase error:", error.message);
+        console.error("Firebase error:", (error as any).message);
         alert(
           `Error: There was a problem submitting the form. Please try again later. If the issue persists, please text (615) 587-9133.`
         );
@@ -123,7 +153,11 @@ function App() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
@@ -134,39 +168,37 @@ function App() {
 
   return (
     <>
-      <video className="video-bg" autoPlay loop muted>
-        <source src="/bgvideo.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
       <div className="main-container">
-        <div className="containerA">
-          <img
-            src="src/scape-logo.png"
-            alt="Company Logo"
-            className="logo-image"
-          />
-          <h1>
-            Lawn Care By <i>Local</i> Highschoolers
-          </h1>
-          <p>
-            At <b>Scape Services</b>, we specialize in connecting homeowners
-            with reliable, hardworking high school landscapers for all your yard
-            care needs.
-          </p>
-          <button className="apply-button">
-            High School Student Looking For a Side Gig?{" "}
-            <b>Apply To Be a Landscaper Now!</b>
-          </button>
-          <button
-            className="login-button"
-            onClick={() => alert("Log In functionality coming soon!")}
-          >
-            Log In
-          </button>
+        <div className="floating-toolbar">
+          <nav className="toolbar-nav">
+            <a href="#join">Join as a Scaper</a>
+          </nav>
+          <a href="#home">
+            <img
+              src="/scape-logo.png"
+              alt="Scape Logo"
+              className="toolbar-logo"
+            />
+          </a>
+          <nav className="toolbar-nav">
+            <a
+              href="#book-appointment"
+              onClick={(e) => {
+                e.preventDefault();
+                const formSection = document.querySelector(".form-container");
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+            >
+              Book an Appointment
+            </a>
+          </nav>
         </div>
+        <div className="header-container"></div>
         <div className="containerB">
           <div className="logo">
-            <center>Book Your SCAPE Appointment</center>
+            <center>Let's Get Started!</center>
           </div>
           <form className="form-container" onSubmit={handleSubmit}>
             {["firstName", "lastName", "email", "phone", "address"].map(
@@ -178,7 +210,7 @@ function App() {
                     id={field}
                     name={field}
                     onChange={handleChange}
-                    value={formData[field]}
+                    value={formData[field as keyof typeof formData]}
                     style={{
                       borderColor: errors[field] ? "red" : "#ddd",
                     }}
@@ -224,9 +256,7 @@ function App() {
               <option value="lawnmowing">Lawnmowing</option>
               <option value="raking-leaves">Raking Leaves</option>
               <option value="planting-flowers">Planting Flowers/Shrubs</option>
-              <option value="yard-cleanup">General Yard Clean-Up</option>
               <option value="mulching">Mulching</option>
-              <option value="snow-shoveling">Snow Shoveling</option>
             </select>
             <label htmlFor="preferredDate">Preferred Date</label>
             <input
@@ -261,7 +291,7 @@ function App() {
             ></textarea>
             <div className="submit-container">
               <button className="submit-button" type="submit">
-                Submit
+                Book Your Appointment
               </button>
             </div>
           </form>
